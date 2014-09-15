@@ -276,9 +276,13 @@ def rstyle(ax):
     #only show bottom left ticks, pointing out of axis
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
+    
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-   
+
+    plt.rc('font', **{'family':'serif', 'serif':['Computer Modern Roman'], 
+                                        'monospace': ['Computer Modern Typewriter'],
+                                        'sans-serif': ['Computer Modern Sans serif'})
    
     if ax.legend_ <> None:
         lg = ax.legend_
