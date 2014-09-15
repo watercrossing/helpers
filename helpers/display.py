@@ -6,13 +6,13 @@ class Table(object):
     Creates a flexible table object. Allows dynamically adding rows.
     Can export as html for display in the notebook, as well as latex for proper reports.
     """
-    regexps = [(re.compile(r'(?<![\\])([#$%&_\\{\\}])'),r'\\\1'), (re.compile(r'(?<![\\])([\^~])'),r'\\\1{}'), 
+    regexps = [(re.compile(r'(?<![\\])([#%&_\\{\\}])'),r'\\\1'), (re.compile(r'(?<![\\])([\^~])'),r'\\\1{}'), 
                (re.compile(r'(?<![\\])\\(?=\\)'),r'\\textbackslash{}')]
     
     @classmethod
     def fixStringForLaTeX(cls, string):
         for r, t in cls.regexps:
-            string = r.sub(t, string)
+            string = r.sub(t, str(string))
         return string
     
     def __init__(self, columnDefinitions, latexColumnDefinitions = None):
@@ -23,6 +23,7 @@ class Table(object):
         self.caption = ""
         self.isFloat = True
         self.isLongTable = False
+        self.isTableStar = False
         self.title = ""
         self.reference = ''
         self.header = None
@@ -87,7 +88,7 @@ class Table(object):
         
     def _repr_latex_(self):
         if self.isFloat and not self.isLongTable:
-            s = u'\\begin{table}[htb!]\n\\centering\n'
+            s = u'\\begin{table%s}[htb!]\n\\centering\n' %("*" if self.isTableStar else "")
         else:
             s = ''
             if self.isLongTable:
@@ -101,17 +102,17 @@ class Table(object):
         sp = self._getSpacingForRows()
         if self.header:
             #s += " Code& F. in A& F. in B& F. in C& F. in D& Label\\\\ \\hline\\hline\\\\[-1.em]\n"
-            s += u'   ' + u" & ".join(['%*s' %(sp[i], x)
+            s += u'   ' + u" & ".join(['%*s' %(sp[i],self.fixStringForLaTeX(x))
                         for i, x in enumerate(self.header)]) + u" \\\\ \\hline\\hline\\\\[-1.em]\n"
         for row in self.rows:
-            s += u'   ' + u" & ".join(['%*s' %(sp[i], x) for i, x in enumerate(row)]) + u" \\\\[0.3em]\n"
+            s += u'   ' + u" & ".join(['%*s' %(sp[i],self.fixStringForLaTeX(x)) for i, x in enumerate(row)]) + u" \\\\[0.3em]\n"
         s += "\\end{%s}\n" %(u'tabular' if not self.isLongTable else u'longtable')
         if self.isFloat and not self.isLongTable:
             if self.caption:
-                s += u'\\caption{%s}\n' %self.caption
+                s += u'\\caption{%s}\n' %self.fixStringForLaTeX(self.caption)
             if self.reference:
                 s += u'\\label{tab:%s}\n' %self.reference
-            s+= u"\\end{table}\n"
+            s+= u"\\end{table%s}\n"  %("*" if self.isTableStar else "")
         else:
             s+= u"\\end{center}\n"
         return s
@@ -172,7 +173,7 @@ class figuresToLaTeX(object):
             string = r.sub(t, string)
         return string
     
-    def __init__(self, columns = 0, caption = "", basename = "", path = ".", 
+    def __init__(self, columns = 1, caption = "", basename = "", path = ".", 
                  totalWidth = 1.0, totalWidthScale = '\\textwidth'):
         self.columns = columns
         self.caption = caption
