@@ -156,10 +156,12 @@ class Table(object):
             if self.headerRotate:
                 if type(self.headerRotate) == type(list()):
                     rots = self.headerRotate
+                elif type(self.headerRotate) == type(str()):
+                    rots = [False] + [self.headerRotate]*(len(self.header) -1)
                 else:
                     rots = [False] + [True]*(len(self.header) -1)
-                rots = ["" if not x else "\\rot%s{" %("" if type(x) == type(True) else "[%s]" %s) for x in rots]
-            hc = ["%s%s%s" %(r, c, "}" if r else "") for r,c in zip(rots,hc)]
+                rots = ["" if not x else "\\rot%s{" %("" if type(x) == type(True) else "[%s]" %x) for x in rots]
+                hc = ["%s%s%s" %(r, c, "}" if r else "") for r,c in zip(rots,hc)]
         
 
             header = Table._addColoursToLatexRow(hc, self.headerColours)
